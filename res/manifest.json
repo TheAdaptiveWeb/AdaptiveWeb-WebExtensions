@@ -1,0 +1,26 @@
+{
+    "manifest_version": 2,
+    "name": "AdaptiveWeb",
+    "version": "0.0.1",
+    "description": "Adaptive web accessibility toolkit.",
+    "permissions": [
+        "storage"
+    ],
+    "icons": {
+        "32": "icons/leftpad-32.png"
+    },
+    "browser_action": {
+        "default_icon": "icons/adaptiveweb-32.png",
+        "default_title": "AdaptiveWeb",
+        "browser_style": true
+    },
+    "content_scripts": [
+        {
+            "matches": ["*"],
+            "js": ["content.js"]
+        }
+    ],
+    "background": {
+        "scripts": ["background.js"]
+    }
+}
