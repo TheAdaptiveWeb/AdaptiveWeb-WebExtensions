@@ -4,10 +4,11 @@
     "version": "0.0.1",
     "description": "Adaptive web accessibility toolkit.",
     "permissions": [
+        "activeTab",
         "storage"
     ],
     "icons": {
-        "32": "icons/leftpad-32.png"
+        "32": "icons/adaptiveweb-32.png"
     },
     "browser_action": {
         "default_icon": "icons/adaptiveweb-32.png",
@@ -16,7 +17,8 @@
     },
     "content_scripts": [
         {
-            "matches": ["*"],
+            "matches": ["http://*/*", "https://*/*"],
+            "all_frames": true,
             "js": ["content.js"]
         }
     ],

@@ -1,30 +1,26 @@
-
-import { AWClient } from '../../../AdaptiveWeb-Core/dist/main';
-import { WebExtWrapper } from '../WebExtWrapper';
-import { handleMessage } from './util';
-import { Adapter } from 'adaptiveweb';
-
-declare var chrome: any, browser: any;
-const b: any = chrome || browser;
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const main_1 = require("../../../AdaptiveWeb-Core/dist/main");
+const WebExtWrapper_1 = require("../WebExtWrapper");
+const util_1 = require("./util");
+const adaptiveweb_1 = require("adaptiveweb");
+const b = chrome || browser;
 // Handles user clicking on browser icon.
 let customisationUrl = 'https://adaptiveweb.io/customize';
 b.browserAction.onClicked.addListener(() => {
     b.tabs.create({ url: customisationUrl });
 });
-
 // Initiate the client
-const wrapper = new WebExtWrapper();
-const awClient = new AWClient(wrapper);
-
-handleMessage((bundle: any, sender: any) => {
+const wrapper = new WebExtWrapper_1.WebExtWrapper();
+const awClient = new main_1.AWClient(wrapper);
+util_1.handleMessage((bundle, sender) => {
     console.log(bundle);
     switch (bundle.message) {
         case 'requestAdapters':
-        return new Promise<any>((resolve, reject) => {
-            let adapters = awClient.getAdapters();
-            resolve(Object.keys(adapters).map(key => adapters[key]));
-        });
+            return new Promise((resolve, reject) => {
+                let adapters = awClient.getAdapters();
+                resolve(Object.keys(adapters).map(key => adapters[key]));
+            });
         case 'request': return request(bundle);
         case 'installAdapter': return validate(attachAdapter, bundle, sender);
         case 'removeAdapter': return validate(removeAdapter, bundle, sender);
@@ -33,37 +29,33 @@ handleMessage((bundle: any, sender: any) => {
         default: return undefined;
     }
 });
-
-function validate(next: Function, bundle: any, sender: any): Promise<any> {
-    let allowedOrigins = /https:\/\/adaptiveweb\.io(\/.+)*(\/)?/;
-    if (allowedOrigins.exec(sender.url) != undefined) return next(bundle);
-    return new Promise<any>((resolve, reject) => {
+function validate(next, bundle, sender) {
+    let allowedOrigin = 'https://adaptiveweb.io';
+    if (sender.url.startsWith(allowedOrigin))
+        return next(bundle);
+    return new Promise((resolve, reject) => {
         console.warn('Configuration intent received from disallowed origin');
         resolve();
     });
 }
-
-function request(bundle: any) {
+function request(bundle) {
     let uuid = bundle.data.uuid;
     let args = bundle.data.args;
     let context = awClient.getAdapterContext(awClient.getAdapters()[uuid]);
     return context.request(args.url, args.options);
 }
-
-function attachAdapter(rawAdapter: string) {
-    let adapter = Adapter.fromObject(rawAdapter);
+function attachAdapter(rawAdapter) {
+    let adapter = adaptiveweb_1.Adapter.fromObject(rawAdapter);
     awClient.attachAdapter(adapter);
 }
-
-function removeAdapter(uuid: string) {
+function removeAdapter(uuid) {
     awClient.detachAdapter(uuid);
 }
-
-function getPreferences(bundle: any) {
+function getPreferences(bundle) {
     let context = awClient.getAdapterContext(awClient.getAdapters()[bundle.data]);
     return context.getPreferences();
 }
-
-function updatePreferences(bundle: any) {
+function updatePreferences(bundle) {
     awClient.setAdapterPreferences(bundle.uuid, bundle.preferences);
 }
+//# sourceMappingURL=background.js.map
