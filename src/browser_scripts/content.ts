@@ -58,7 +58,6 @@ import 'adaptiveweb/dist/reporting';
         getPreferences(): Promise<any> {
             return new Promise<any>((resolve, reject) => {
                 sendMessage('getPreferences', this.adapter.uuid).then((message) => {
-                    console.log('ProxyAdapterContext::getPreferences:', message);
                     resolve(message);
                 });
             });
