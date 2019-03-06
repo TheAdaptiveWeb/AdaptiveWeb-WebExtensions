@@ -29,13 +29,16 @@ export function sendMessage(messageName: string, data?: any): Promise<any> {
         let promise = b.runtime.sendMessage({
             message: messageName,
             data: data
-        }, function(response: any) {
-            if (!resolved) resolve(response);
+        }, function(response: any, isError: boolean = false) {
+            if (!resolved) {
+                if (isError) reject(response);
+                else         resolve(response);
+            }
         });
 
         if (promise != undefined) {
             resolved = true;
-            promise.then((res: any) => resolve(res));
+            return promise;
         }
     });
 }
@@ -57,8 +60,8 @@ export function handleMessage(callback: Function) {
         let promise: Promise<any> = callback(bundle, sender);
         if (promise == undefined) return;
         if (sendResponse != undefined) { // For chrome
-            promise.then(res => sendResponse(res))
-            return true;
+            promise.then(res => sendResponse(res), err => sendResponse(err, true))
+            return true; // Return true tells Chrome this is async
         } else return promise; // Firefox
     });
 }
