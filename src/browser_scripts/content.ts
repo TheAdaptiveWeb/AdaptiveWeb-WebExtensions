@@ -13,18 +13,10 @@
  *  permissions and limitations under the License.
  */
 import { Adapter, XHROptions, IAdapterContext } from "adaptiveweb";
-import { sendMessage } from "./util";
+import { sendMessage, validateOrigin } from "./util";
 import 'adaptiveweb/dist/reporting';
 
 (function() {
-
-    const ALLOW_LOCALHOST = true;
-    let allowedOrigins = /https:\/\/adaptiveweb\.io(\/.+)*(\/)?/;
-
-    function validateOrigin(origin: string) {
-        if (ALLOW_LOCALHOST && origin.startsWith('http://localhost')) return true;
-        return allowedOrigins.exec(origin) !== undefined;
-    }
 
     if (validateOrigin(location.href)) {
         window.postMessage({ message: 'initAdaptiveWebPlugin', reply: true }, '*');

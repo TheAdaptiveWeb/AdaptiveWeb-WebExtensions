@@ -14,7 +14,7 @@
  */
 import { AWClient } from '../../../AdaptiveWeb-Core/dist/main';
 import { WebExtWrapper } from '../WebExtWrapper';
-import { handleMessage } from './util';
+import { handleMessage, validateOrigin } from './util';
 import { Adapter } from 'adaptiveweb';
 
 declare var chrome: any, browser: any;
@@ -47,11 +47,9 @@ handleMessage((bundle: any, sender: any) => {
 });
 
 function validate(next: Function, bundle: any, sender: any): Promise<any> {
-    let allowedOrigins = /https:\/\/adaptiveweb\.io(\/.+)*(\/)?/;
-    if (allowedOrigins.exec(sender.url) != undefined) return next(bundle);
-    return new Promise<any>((resolve, reject) => {
-        console.warn('Configuration intent received from disallowed origin');
-        resolve();
+    if (validateOrigin(sender.url)) return next(bundle);
+    return new Promise<any>((_, reject) => {
+        reject('Configuration intent received from disallowed origin');
     });
 }
 
@@ -64,7 +62,7 @@ function request(bundle: any) {
 
 function attachAdapter(rawAdapter: string) {
     let adapter = Adapter.fromObject(rawAdapter);
-    awClient.attachAdapter(adapter);
+    return awClient.attachAdapter(adapter);
 }
 
 function removeAdapter(uuid: string) {

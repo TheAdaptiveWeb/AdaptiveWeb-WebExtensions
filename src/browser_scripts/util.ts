@@ -15,6 +15,9 @@
 declare var chrome: any, browser: any;
 const b: any = chrome || browser;
 
+const ALLOW_LOCALHOST = true;
+let allowedOrigins = /https:\/\/adaptiveweb\.io(\/.+)*(\/)?/;
+
 /**
  * Sends a message
  * @param messageName the name of the message
@@ -57,4 +60,13 @@ export function handleMessage(callback: Function) {
             promise.then(res => sendResponse(res));
         return promise;
     });
+}
+
+/**
+ * Validates whether an origin is allowed
+ * @param origin the origin to evaluate
+ */
+export function validateOrigin(origin: string): boolean {
+    if (ALLOW_LOCALHOST && origin.startsWith('http://localhost')) return true;
+    return allowedOrigins.exec(origin) !== undefined;
 }
