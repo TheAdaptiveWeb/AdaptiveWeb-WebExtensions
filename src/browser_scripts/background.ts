@@ -21,7 +21,7 @@ declare var chrome: any, browser: any;
 const b: any = chrome || browser;
 
 // Handles user clicking on browser icon.
-let customisationUrl = 'https://adaptiveweb.io/customize';
+let customisationUrl = 'https://adaptiveweb.io/#/adapters';
 b.browserAction.onClicked.addListener(() => {
     b.tabs.create({ url: customisationUrl });
 });
@@ -31,10 +31,12 @@ const wrapper = new WebExtWrapper();
 const awClient = new AWClient(wrapper);
 
 handleMessage((bundle: any, sender: any) => {
-    console.log(bundle);
+    console.log(bundle.message);
     switch (bundle.message) {
         case 'requestAdapters':
+        console.log('starting resolve');
         return new Promise<any>((resolve, reject) => {
+            console.log('resolving');
             let adapters = awClient.getAdapters();
             resolve(Object.keys(adapters).map(key => adapters[key]));
         });

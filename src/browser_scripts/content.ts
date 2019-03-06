@@ -18,6 +18,38 @@ import 'adaptiveweb/dist/reporting';
 
 (function() {
 
+    const ALLOW_LOCALHOST = true;
+    let allowedOrigins = /https:\/\/adaptiveweb\.io(\/.+)*(\/)?/;
+
+    function validateOrigin(origin: string) {
+        if (ALLOW_LOCALHOST && origin.startsWith('http://localhost')) return true;
+        return allowedOrigins.exec(origin) !== undefined;
+    }
+
+    if (validateOrigin(location.href)) {
+        window.postMessage({ message: 'initAdaptiveWebPlugin', reply: true }, '*');
+    }
+
+    /**
+     * Handle messages from page
+     */
+    window.addEventListener('message', event => {
+        if (event.data.reply) return;
+        if (event.source != window) return;
+        if (!validateOrigin(event.origin)) {
+            if (event.data && event.data.messageId !== undefined) 
+                reply(event.data.messageId, 'Request sent from disallowed origin: ' + event.origin, true);
+            return;
+        }
+
+        let { messageId, bundle } = event.data;
+        let { message, data } = bundle;
+        sendMessage(message, data)
+            .then(res => {
+                reply(messageId, res);
+            });
+    });
+
     /**
      * Routes AdapterContext calls through the background script
      */
@@ -61,16 +93,8 @@ import 'adaptiveweb/dist/reporting';
             executeAdapters(adapters);
         });
 
-    /**
-     * Handle messages from page
-     */
-    window.addEventListener('message', event => {
-        if (event.source != window) return;
-        let allowedOrigins = /https:\/\/adaptiveweb\.io(\/.+)*(\/)?/;
-        if (allowedOrigins.exec(event.origin) == undefined) return;
-
-        let { message, data } = event.data;
-        sendMessage(message, data);
-    });
+    function reply(messageId: Number, bundle: any, isError = false) {
+        window.postMessage({ messageId, bundle, isError, reply: true }, '*');
+    }
 
 })();
