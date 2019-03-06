@@ -52,11 +52,14 @@ export class WebExtStorageService implements StorageService {
         
         return new Promise<any>((resolve, reject) => {
             let promise = storage.get(key, (result: any) => {
+                console.log('we have a response!', result);
                 resolve(result[key]);
             });
 
             if (promise !== undefined) {
-                return promise;
+                promise.then((result: any) => {
+                    resolve(result[key]);
+                })
             }
         });
     }

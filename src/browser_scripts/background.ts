@@ -71,7 +71,12 @@ function removeAdapter(uuid: string) {
 
 function getPreferences(bundle: any) {
     let context = awClient.getAdapterContext(awClient.getAdapters()[bundle]);
-    return context.getPreferences();
+    return new Promise<any>((resolve, reject) => {
+        context.getPreferences().then((prefs: any) => {
+            console.log('Response in background.ts', prefs);
+            resolve(prefs);
+        });
+    }) 
 }
 
 function updatePreferences(bundle: any) {
