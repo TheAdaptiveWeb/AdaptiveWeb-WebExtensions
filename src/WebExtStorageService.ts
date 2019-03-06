@@ -30,11 +30,17 @@ export class WebExtStorageService implements StorageService {
      * @param type the type of storage, defaults to StorageType.SYNC
      */
     set(key: string, value: any, type: StorageType = StorageType.SYNC): Promise<any> {
-        if (type == StorageType.SYNC) {
-            return this.browser.storage.sync.set({ [key] : value });
-        } else {
-            return this.browser.storage.local.set({ [key] : value });
-        }
+        let storage = (type === StorageType.SYNC) ? this.browser.storage.sync : this.browser.storage.local;
+        
+        return new Promise<any>((resolve, reject) => {
+            let promise = storage.set({ [key] : value }, (result: any) => {
+                resolve(result);
+            });
+
+            if (promise !== undefined) {
+                return promise;
+            }
+        });
     }
 
     /**
@@ -42,11 +48,17 @@ export class WebExtStorageService implements StorageService {
      * @param key the key to retrieve
      */
     get(key: string, type: StorageType = StorageType.SYNC): Promise<any> {
-        if (type == StorageType.SYNC) {
-            return this.browser.storage.sync.get(key);
-        } else {
-            return this.browser.storage.local.get(key);
-        }
+        let storage = (type === StorageType.SYNC) ? this.browser.storage.sync : this.browser.storage.local;
+        
+        return new Promise<any>((resolve, reject) => {
+            let promise = storage.get(key, (result: any) => {
+                resolve(result[key]);
+            });
+
+            if (promise !== undefined) {
+                return promise;
+            }
+        });
     }
 
 }

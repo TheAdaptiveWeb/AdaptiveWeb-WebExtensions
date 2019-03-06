@@ -37,12 +37,12 @@ handleMessage((bundle: any, sender: any) => {
             let adapters = awClient.getAdapters();
             resolve(Object.keys(adapters).map(key => adapters[key]));
         });
-        case 'request': return request(bundle);
-        case 'installAdapter': return validate(attachAdapter, bundle, sender);
-        case 'removeAdapter': return validate(removeAdapter, bundle, sender);
-        case 'getPreferences': return getPreferences(bundle);
-        case 'updatePreferences': return validate(updatePreferences, bundle, sender);
-        default: return undefined;
+        case 'request': return request(bundle.data);
+        case 'installAdapter': return validate(attachAdapter, bundle.data, sender);
+        case 'removeAdapter': return validate(removeAdapter, bundle.data, sender);
+        case 'getPreferences': return getPreferences(bundle.data);
+        case 'updatePreferences': return validate(updatePreferences, bundle.data, sender);
+        default: return new Promise<any>((_, reject) => reject(new Error('Command not found: ' + bundle.message)));
     }
 });
 
@@ -54,13 +54,13 @@ function validate(next: Function, bundle: any, sender: any): Promise<any> {
 }
 
 function request(bundle: any) {
-    let uuid = bundle.data.uuid;
-    let args = bundle.data.args;
+    let uuid = bundle.uuid;
+    let args = bundle.args;
     let context = awClient.getAdapterContext(awClient.getAdapters()[uuid]);
     return context.request(args.url, args.options);
 }
 
-function attachAdapter(rawAdapter: string) {
+function attachAdapter(rawAdapter: any) {
     let adapter = Adapter.fromObject(rawAdapter);
     return awClient.attachAdapter(adapter);
 }
@@ -70,7 +70,7 @@ function removeAdapter(uuid: string) {
 }
 
 function getPreferences(bundle: any) {
-    let context = awClient.getAdapterContext(awClient.getAdapters()[bundle.data]);
+    let context = awClient.getAdapterContext(awClient.getAdapters()[bundle]);
     return context.getPreferences();
 }
 
