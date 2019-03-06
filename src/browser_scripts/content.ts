@@ -38,7 +38,6 @@ import 'adaptiveweb/dist/reporting';
         let { message, data } = bundle;
         sendMessage(message, data)
             .then(res => {
-                console.log('got', res);
                 reply(messageId, res);
             });
     });
@@ -59,7 +58,6 @@ import 'adaptiveweb/dist/reporting';
         getPreferences(): Promise<any> {
             return new Promise<any>((resolve, reject) => {
                 sendMessage('getPreferences', this.adapter.uuid).then((message) => {
-                    console.log('we have a response! (client)', message);
                     return Promise.resolve(message);
                 });
             });

@@ -30,7 +30,6 @@ export function sendMessage(messageName: string, data?: any): Promise<any> {
             message: messageName,
             data: data
         }, function(response: any) {
-            console.log('cside:', response);
             if (!resolved) resolve(response);
         });
 
@@ -58,7 +57,7 @@ export function handleMessage(callback: Function) {
         let promise: Promise<any> = callback(bundle, sender);
         if (promise == undefined) return;
         if (sendResponse != undefined) { // For chrome
-            promise.then(res => { console.log('cside', res); sendResponse(res); })
+            promise.then(res => sendResponse(res))
             return true;
         } else return promise; // Firefox
     });
