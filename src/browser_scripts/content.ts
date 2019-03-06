@@ -39,6 +39,8 @@ import 'adaptiveweb/dist/reporting';
         sendMessage(message, data)
             .then(res => {
                 reply(messageId, res);
+            }, err => {
+                reply(messageId, err, true);
             });
     });
 
