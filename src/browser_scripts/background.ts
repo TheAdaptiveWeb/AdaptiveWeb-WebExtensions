@@ -31,12 +31,9 @@ const wrapper = new WebExtWrapper();
 const awClient = new AWClient(wrapper);
 
 handleMessage((bundle: any, sender: any) => {
-    console.log(bundle.message);
     switch (bundle.message) {
         case 'requestAdapters':
-        console.log('starting resolve');
         return new Promise<any>((resolve, reject) => {
-            console.log('resolving');
             let adapters = awClient.getAdapters();
             resolve(Object.keys(adapters).map(key => adapters[key]));
         });
