@@ -92,6 +92,12 @@ import 'adaptiveweb/dist/reporting';
             executeAdapters(adapters);
         });
 
+    /**
+     * Replies to a message
+     * @param messageId the message ID to reply to
+     * @param bundle the bundle to send with the reply
+     * @param isError denotes if this is an error or not
+     */
     function reply(messageId: Number, bundle: any, isError = false) {
         window.postMessage({ messageId, bundle, isError, reply: true }, '*');
     }
