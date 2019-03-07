@@ -35,6 +35,7 @@ import 'adaptiveweb/dist/reporting';
         }
 
         let { messageId, bundle } = event.data;
+        if (messageId === undefined || bundle === undefined) return; // This message probably isn't for us
         let { message, data } = bundle;
         sendMessage(message, data)
             .then(res => {
