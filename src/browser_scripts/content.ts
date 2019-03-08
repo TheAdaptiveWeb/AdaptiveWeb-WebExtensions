@@ -60,7 +60,7 @@ import 'adaptiveweb/dist/reporting';
 
         getPreferences(): Promise<any> {
             return new Promise<any>((resolve, reject) => {
-                sendMessage('getPreferences', this.adapter.uuid).then((message) => {
+                sendMessage('getPreferences', { uuid: this.adapter.uuid }).then((message) => {
                     resolve(message);
                 });
             });

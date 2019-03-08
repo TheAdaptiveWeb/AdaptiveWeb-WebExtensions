@@ -67,7 +67,7 @@ function validate(next: Function, bundle: any, sender: any): Promise<any> {
  * @param bundle the bundle
  */
 function handleAdapterContextCall(fn: string, bundle: any): Promise<any> {
-    let { uuid, args } = bundle;
+    let { uuid, args = [] } = bundle;
     let context: AdapterContext = awClient.getAdapterContext(awClient.getAdapters()[uuid]);
     return (<any>context)[fn](...args);
 }
