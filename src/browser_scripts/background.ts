@@ -16,6 +16,8 @@ import { WebExtWrapper } from '../WebExtWrapper';
 import { handleMessage, validateOrigin } from './util';
 import { AWClient, Adapter, AdapterContext } from 'adaptiveweb';
 
+import * as io from 'socket.io-client';
+
 declare var chrome: any, browser: any;
 const b: any = chrome || browser;
 
@@ -28,10 +30,13 @@ b.browserAction.onClicked.addListener(() => {
 // Initiate the client
 const wrapper = new WebExtWrapper();
 const awClient = new AWClient(wrapper);
+let developerMode: boolean;
+let socket;
 
 function init() {
     // Setup developer mode if applicable
     awClient.getGlobalOptions().then(options => {
+        developerMode = options && options.developerMode;
         if (options && options.developerMode) {
             initDeveloperMode();
         }
@@ -42,16 +47,18 @@ function init() {
  * Connects to the native interface
  */
 function initDeveloperMode() {
-    const port = b.runtime.connectNative('io.adaptiveweb.awcli');
-
-    port.onMessage.addListener((msg: string) => {
-        console.log('Native interface message:', msg);
+    socket = io('http://localhost:13551');
+    
+    socket.on('connect', () => { console.log('Connected to development server'); });
+    
+    socket.on('adapterUpdate', ((msg: any) => {
+        console.log('Adapter update from awcli:', msg);
         // Install the adapter
         let adapter = Adapter.fromObject(msg);
         awClient.attachAdapter(adapter, true);
-    });
+    }));
 
-    port.onDisconnect.addListener(() => {
+    socket.on('disconnect', () => {
         console.log('Disconnected from native interface.');
     });
 }
@@ -145,6 +152,9 @@ function updatePreferences(bundle: any) {
  * @param bundle the bundle
  */
 function setGlobalOptions(bundle: any) {
+    if (bundle && bundle.developerMode && !developerMode) {
+        initDeveloperMode();
+    }
     return awClient.setGlobalOptions(bundle);
 }
 
