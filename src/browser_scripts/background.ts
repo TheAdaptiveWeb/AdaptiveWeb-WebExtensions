@@ -12,10 +12,9 @@
  *  express or implied. See the License for the specific language governing 
  *  permissions and limitations under the License.
  */
-import { AWClient } from '../../../AdaptiveWeb-Core/dist/main';
 import { WebExtWrapper } from '../WebExtWrapper';
 import { handleMessage, validateOrigin } from './util';
-import { Adapter } from 'adaptiveweb';
+import { AWClient, Adapter, AdapterContext } from 'adaptiveweb';
 
 declare var chrome: any, browser: any;
 const b: any = chrome || browser;
@@ -30,22 +29,31 @@ b.browserAction.onClicked.addListener(() => {
 const wrapper = new WebExtWrapper();
 const awClient = new AWClient(wrapper);
 
+// Handle messages sent from content script
 handleMessage((bundle: any, sender: any) => {
+    if (bundle && bundle.data && bundle.data.uuid) {
+        // Assume this is an AdapterContext call
+        return handleAdapterContextCall(bundle.message, bundle.data);
+    }
     switch (bundle.message) {
         case 'requestAdapters':
         return new Promise<any>((resolve, reject) => {
             let adapters = awClient.getAdapters();
             resolve(Object.keys(adapters).map(key => adapters[key]));
         });
-        case 'request': return request(bundle.data);
         case 'installAdapter': return validate(attachAdapter, bundle.data, sender);
         case 'removeAdapter': return validate(removeAdapter, bundle.data, sender);
-        case 'getPreferences': return getPreferences(bundle.data);
         case 'updatePreferences': return validate(updatePreferences, bundle.data, sender);
         default: return new Promise<any>((_, reject) => reject(new Error('Command not found: ' + bundle.message)));
     }
 });
 
+/**
+ * Validate that a message is coming from an allowed origin
+ * @param next the next function to run
+ * @param bundle the bundle to pass through
+ * @param sender the sender of the message
+ */
 function validate(next: Function, bundle: any, sender: any): Promise<any> {
     if (validateOrigin(sender.url)) return next(bundle);
     return new Promise<any>((_, reject) => {
@@ -53,11 +61,15 @@ function validate(next: Function, bundle: any, sender: any): Promise<any> {
     });
 }
 
-function request(bundle: any) {
-    let uuid = bundle.uuid;
-    let args = bundle.args;
-    let context = awClient.getAdapterContext(awClient.getAdapters()[uuid]);
-    return context.request(args.url, args.options);
+/**
+ * Handle a call to an AdapterContext
+ * @param fn the name of the function to call
+ * @param bundle the bundle
+ */
+function handleAdapterContextCall(fn: string, bundle: any): Promise<any> {
+    let { uuid, args } = bundle;
+    let context: AdapterContext = awClient.getAdapterContext(awClient.getAdapters()[uuid]);
+    return (<any>context)[fn](...args);
 }
 
 function attachAdapter(rawAdapter: any) {
@@ -67,15 +79,6 @@ function attachAdapter(rawAdapter: any) {
 
 function removeAdapter(uuid: string) {
     awClient.detachAdapter(uuid);
-}
-
-function getPreferences(bundle: any) {
-    let context = awClient.getAdapterContext(awClient.getAdapters()[bundle]);
-    return new Promise<any>((resolve, reject) => {
-        context.getPreferences().then((prefs: any) => {
-            resolve(prefs);
-        });
-    }) 
 }
 
 function updatePreferences(bundle: any) {
