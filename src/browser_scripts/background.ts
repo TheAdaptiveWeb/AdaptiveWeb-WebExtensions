@@ -48,6 +48,12 @@ function init() {
  */
 function initDeveloperMode() {
     socket = io('http://localhost:13551');
+
+    socket.io.on('connect_error', (err: any) => {
+        console.log('Development server not online.', err);
+        socket.close();
+        return;
+    });
     
     socket.on('connect', () => { 
         console.log('Connected to development server');
