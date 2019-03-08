@@ -5,6 +5,7 @@ module.exports = {
         background: "./src/browser_scripts/background.ts",
         content: "./src/browser_scripts/content.ts"
     },
+    mode: 'production',
     module: {
         rules: [
             {
