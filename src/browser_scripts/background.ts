@@ -29,12 +29,35 @@ b.browserAction.onClicked.addListener(() => {
 const wrapper = new WebExtWrapper();
 const awClient = new AWClient(wrapper);
 
+function init() {
+    // Setup developer mode if applicable
+    awClient.getGlobalOptions().then(options => {
+        if (options && options.developerMode) {
+            initDeveloperMode();
+        }
+    })
+}
+
+/**
+ * Connects to the native interface
+ */
+function initDeveloperMode() {
+    const port = b.runtime.connectNative('io.adaptiveweb.awcli');
+
+    port.onMessage.addListener((msg: string) => {
+        console.log('Native interface message:', msg);
+        // Install the adapter
+        let adapter = Adapter.fromObject(msg);
+        awClient.attachAdapter(adapter, true);
+    });
+
+    port.onDisconnect.addListener(() => {
+        console.log('Disconnected from native interface.');
+    });
+}
+
 // Handle messages sent from content script
 handleMessage((bundle: any, sender: any) => {
-    if (bundle && bundle.data && bundle.data.uuid) {
-        // Assume this is an AdapterContext call
-        return handleAdapterContextCall(bundle.message, bundle.data);
-    }
     switch (bundle.message) {
         case 'requestAdapters':
         return new Promise<any>((resolve, reject) => {
@@ -46,9 +69,14 @@ handleMessage((bundle: any, sender: any) => {
         case 'updatePreferences': return validate(updatePreferences, bundle.data, sender);
         case 'setGlobalOptions': return validate(setGlobalOptions, bundle.data, sender);
         case 'getGlobalOptions': return validate(getGlobalOptions, bundle.data, sender); 
-        default: return new Promise<any>((_, reject) => reject(new Error('Command not found: ' + bundle.message)));
+        default: {
+            if (bundle.data.uuid) return handleAdapterContextCall(bundle.message, bundle.data);
+            return new Promise<any>((_, reject) => reject(new Error('Command not found: ' + bundle.message)));
+        }
     }
 });
+
+init();
 
 /**
  * Validate that a message is coming from an allowed origin
@@ -71,7 +99,9 @@ function validate(next: Function, bundle: any, sender: any): Promise<any> {
 function handleAdapterContextCall(fn: string, bundle: any): Promise<any> {
     let { uuid, args = [] } = bundle;
     let context: AdapterContext = awClient.getAdapterContext(awClient.getAdapters()[uuid]);
-    return (<any>context)[fn](...args);
+    console.log('prototype', <any> AdapterContext.prototype);
+    console.log('prototype fn', fn, (<any> AdapterContext.prototype)[fn]);
+    return (<any> AdapterContext.prototype)[fn].call(context, ...args);
 }
 
 /**
