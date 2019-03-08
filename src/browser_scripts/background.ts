@@ -44,6 +44,8 @@ handleMessage((bundle: any, sender: any) => {
         case 'installAdapter': return validate(attachAdapter, bundle.data, sender);
         case 'removeAdapter': return validate(removeAdapter, bundle.data, sender);
         case 'updatePreferences': return validate(updatePreferences, bundle.data, sender);
+        case 'setGlobalOptions': return validate(setGlobalOptions, bundle.data, sender);
+        case 'getGlobalOptions': return validate(getGlobalOptions, bundle.data, sender); 
         default: return new Promise<any>((_, reject) => reject(new Error('Command not found: ' + bundle.message)));
     }
 });
@@ -72,15 +74,42 @@ function handleAdapterContextCall(fn: string, bundle: any): Promise<any> {
     return (<any>context)[fn](...args);
 }
 
+/**
+ * Attaches an adapter
+ * @param adapter the adapter to attach
+ */
 function attachAdapter(rawAdapter: any) {
     let adapter = Adapter.fromObject(rawAdapter);
     return awClient.attachAdapter(adapter);
 }
 
+/**
+ * Detach an adapter
+ * @param uuid the uuid of the adapter to detach
+ */
 function removeAdapter(uuid: string) {
     awClient.detachAdapter(uuid);
 }
 
+/**
+ * Sets the preferences for an adapter
+ * @param bundle the bundle
+ */
 function updatePreferences(bundle: any) {
     awClient.setAdapterPreferences(bundle.uuid, bundle.preferences);
+}
+
+/**
+ * Saves global options (used by the configuration site and interacting with awcli)
+ * @param bundle the bundle
+ */
+function setGlobalOptions(bundle: any) {
+    return awClient.setGlobalOptions(bundle);
+}
+
+/**
+ * Fetch the global options.
+ */
+function getGlobalOptions() {
+    return awClient.getGlobalOptions();
 }

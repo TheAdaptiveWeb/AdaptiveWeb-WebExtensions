@@ -23,6 +23,7 @@ export class WebExtWrapper extends Wrapper {
 
     // Name - Used for tracking and reporting
     name = 'WebExtensions';
+    version = '0.0.1';
     
     // Services
     storage = new WebExtStorageService;
