@@ -31,7 +31,7 @@ b.browserAction.onClicked.addListener(() => {
 const wrapper = new WebExtWrapper();
 const awClient = new AWClient(wrapper);
 let developerMode: boolean;
-let socket;
+let socket: SocketIOClient.Socket;
 
 function init() {
     // Setup developer mode if applicable
@@ -49,7 +49,16 @@ function init() {
 function initDeveloperMode() {
     socket = io('http://localhost:13551');
     
-    socket.on('connect', () => { console.log('Connected to development server'); });
+    socket.on('connect', () => { 
+        console.log('Connected to development server');
+        socket.emit('requestAdapters', (adapters: any[]) => {
+            console.log('Adding adapters:', adapters);
+            adapters.forEach(adapter => {
+                let a = Adapter.fromObject(adapter);
+                awClient.attachAdapter(a, true);
+            })
+        });
+    });
     
     socket.on('adapterUpdate', ((msg: any) => {
         console.log('Adapter update from awcli:', msg);
