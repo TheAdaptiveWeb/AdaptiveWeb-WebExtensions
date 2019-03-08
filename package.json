@@ -17,7 +17,9 @@
     "url": "https://github.com/TheAdaptiveWeb/AdaptiveWeb-WebExtensions/issues"
   },
   "homepage": "https://github.com/TheAdaptiveWeb/AdaptiveWeb-WebExtensions#readme",
-  "dependencies": {},
+  "dependencies": {
+    "adaptiveweb": "^1.0.1-alpha5"
+  },
   "devDependencies": {
     "ts-loader": "^5.3.3",
     "typescript": "^3.2.4",
