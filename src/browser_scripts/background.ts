@@ -122,13 +122,13 @@ function handleAdapterContextCall(fn: string, bundle: any): Promise<any> {
     return new Promise((resolve, reject) => {
         let { uuid, args = [] } = bundle;
         let context: AdapterContext = awClient.getAdapterContext(awClient.getAdapters()[uuid]);
-        console.log('prototype', <any> AdapterContext.prototype);
-        console.log('prototype fn', fn, (<any> AdapterContext.prototype)[fn]);
+
         // Handle function not found
         if ((<any> AdapterContext.prototype)[fn] === undefined) { 
             reject(new Error('Could not find function "' + fn + '"')); 
             return; 
         }
+        
         // Resolve with response to adapter call
         (<any> AdapterContext.prototype)[fn].call(context, ...args).then((res: any) => {
             resolve(res);
