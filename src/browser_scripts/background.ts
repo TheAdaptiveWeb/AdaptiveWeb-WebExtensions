@@ -58,11 +58,17 @@ function initDeveloperMode() {
     socket.on('connect', () => { 
         console.log('Connected to development server');
         socket.emit('requestAdapters', (adapters: any[]) => {
+            console.log('Removing old development adapters');
+            let devAdapters = awClient.getAdapters();
+            let uninstallList = Object.keys(devAdapters).filter(k => devAdapters[k].developer);
+            uninstallList.forEach(awClient.detachAdapter);
+
             console.log('Adding adapters:', adapters);
             adapters.forEach(adapter => {
+                adapter.developer = true;
                 let a = Adapter.fromObject(adapter);
                 awClient.attachAdapter(a, true);
-            })
+            });
         });
     });
     
