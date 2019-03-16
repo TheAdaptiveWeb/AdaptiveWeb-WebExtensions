@@ -98,7 +98,7 @@ handleMessage((bundle: any, sender: any) => {
         case 'setGlobalOptions': return validate(setGlobalOptions, bundle.data, sender);
         case 'getGlobalOptions': return validate(getGlobalOptions, bundle.data, sender); 
         default: {
-            if (bundle.data.uuid) return handleAdapterContextCall(bundle.message, bundle.data);
+            if (bundle.data.id) return handleAdapterContextCall(bundle.message, bundle.data);
             return new Promise<any>((_, reject) => reject(new Error('Command not found: ' + bundle.message)));
         }
     }
@@ -126,8 +126,8 @@ function validate(next: Function, bundle: any, sender: any): Promise<any> {
  */
 function handleAdapterContextCall(fn: string, bundle: any): Promise<any> {
     return new Promise((resolve, reject) => {
-        let { uuid, args = [] } = bundle;
-        let context: AdapterContext = awClient.getAdapterContext(awClient.getAdapters()[uuid]);
+        let { id, args = [] } = bundle;
+        let context: AdapterContext = awClient.getAdapterContext(awClient.getAdapters()[id]);
 
         // Handle function not found
         if ((<any> AdapterContext.prototype)[fn] === undefined) { 
@@ -154,10 +154,10 @@ function attachAdapter(rawAdapter: any) {
 
 /**
  * Detach an adapter
- * @param uuid the uuid of the adapter to detach
+ * @param id the id of the adapter to detach
  */
-function removeAdapter(uuid: string) {
-    awClient.detachAdapter(uuid);
+function removeAdapter(id: string) {
+    awClient.detachAdapter(id);
 }
 
 /**
@@ -165,7 +165,7 @@ function removeAdapter(uuid: string) {
  * @param bundle the bundle
  */
 function updatePreferences(bundle: any) {
-    awClient.setAdapterPreferences(bundle.uuid, bundle.preferences);
+    awClient.setAdapterPreferences(bundle.id, bundle.preferences);
 }
 
 /**

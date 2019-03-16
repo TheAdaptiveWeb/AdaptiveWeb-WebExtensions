@@ -55,12 +55,12 @@ import 'adaptiveweb/dist/reporting';
         }
 
         request(url: string, options: XHROptions): Promise<any> {
-            return sendMessage('request', { uuid: this.adapter.uuid, args: [url, options] });
+            return sendMessage('request', { id: this.adapter.id, args: [url, options] });
         }
 
         getPreferences(): Promise<any> {
             return new Promise<any>((resolve, reject) => {
-                sendMessage('getPreferences', { uuid: this.adapter.uuid }).then((message) => {
+                sendMessage('getPreferences', { id: this.adapter.id }).then((message) => {
                     resolve(message);
                 });
             });
