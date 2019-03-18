@@ -30,7 +30,7 @@ b.browserAction.onClicked.addListener(() => {
 // Initiate the client
 const wrapper = new WebExtWrapper();
 const awClient = new AWClient(wrapper);
-let developerMode: boolean;
+let developerMode: boolean, autoReload: boolean;
 let socket: SocketIOClient.Socket;
 
 let unfulfilled: any = [];
@@ -42,14 +42,18 @@ function init() {
             let { bundle, sender, resolve } = message;
             resolve(fulfilMessage(bundle, sender));
         });
-    });
 
-    // Setup developer mode if applicable
+        // Setup developer mode if applicable
+        refreshOptions(initDeveloperMode);
+    });
+}
+
+function refreshOptions(then: Function) {
+    if (awClient === undefined) return;
     awClient.getGlobalOptions().then(options => {
         developerMode = options && options.developerMode;
-        if (options && options.developerMode) {
-            initDeveloperMode();
-        }
+        autoReload = options && options.autoReload;
+        then();
     })
 }
 
@@ -71,7 +75,7 @@ function initDeveloperMode() {
             console.log('Removing old development adapters');
             let devAdapters = awClient.getAdapters();
             let uninstallList = Object.keys(devAdapters).filter(k => devAdapters[k].developer);
-            uninstallList.forEach(awClient.detachAdapter);
+            uninstallList.forEach((adapter: any) => awClient.detachAdapter(adapter.id));
 
             console.log('Adding adapters:', adapters);
             adapters.forEach(adapter => {
@@ -83,10 +87,28 @@ function initDeveloperMode() {
     });
     
     socket.on('adapterUpdate', ((msg: any) => {
-        console.log('Adapter update from awcli:', msg);
-        // Install the adapter
-        let adapter = Adapter.fromObject(msg);
-        awClient.attachAdapter(adapter, true);
+        refreshOptions(function() {
+            if (!developerMode) socket.close();
+            else {
+                console.log('Adapter update from awcli:', msg);
+                // Install the adapter
+                let adapter = Adapter.fromObject(msg);
+                awClient.attachAdapter(adapter, true);
+
+                if (autoReload) {
+                    let reloadTab = (tab: any) => {
+                        b.tabs.reload(tab.id);
+                    };
+
+                    // Reload the current tab
+                    let promise = b.tabs.query({ active: true, currentWindow: true }, (tabs: any) => reloadTab(tabs[0]));
+
+                    if (promise != undefined) {
+                        promise.then((tabs: any) => reloadTab(tabs[0]));
+                    }
+                }
+            }
+        });
     }));
 
     socket.on('disconnect', () => {
