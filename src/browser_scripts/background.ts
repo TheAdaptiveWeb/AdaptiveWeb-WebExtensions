@@ -92,6 +92,7 @@ function initDeveloperMode() {
             else {
                 console.log('Adapter update from awcli:', msg);
                 // Install the adapter
+                msg.developer = true;
                 let adapter = Adapter.fromObject(msg);
                 awClient.attachAdapter(adapter, true);
 
