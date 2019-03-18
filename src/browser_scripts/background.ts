@@ -101,7 +101,7 @@ handleMessage((bundle: any, sender: any) => {
             unfulfilled.push({ bundle, sender, resolve });
         });
     } else {
-        fulfilMessage(bundle, sender);
+        return fulfilMessage(bundle, sender);
     }
 });
 

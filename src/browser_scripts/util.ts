@@ -30,6 +30,10 @@ export function sendMessage(messageName: string, data?: any): Promise<any> {
             message: messageName,
             data: data
         }, function(bundle: any) {
+            if (bundle === undefined) {
+                reject('Bundle is undefined');
+                return;
+            }
             let { message, isError } = bundle;
             if (!resolved) {
                 if (isError) reject(message);
