@@ -132,7 +132,6 @@ function fulfilMessage(bundle: any, sender: any) {
         case 'requestAdapters':
         return new Promise<any>((resolve, reject) => {
             let adapters = awClient.getAdapters();
-            console.log('Background awClient.getAdapters: ' + JSON.stringify(adapters));
             resolve(Object.keys(adapters).map(key => adapters[key]));
         });
         case 'installAdapter': return validate(attachAdapter, bundle.data, sender);
