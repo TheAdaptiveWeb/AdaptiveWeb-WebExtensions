@@ -33,7 +33,17 @@ const awClient = new AWClient(wrapper);
 let developerMode: boolean;
 let socket: SocketIOClient.Socket;
 
+let unfulfilled: any = [];
+
 function init() {
+    // Init the AWClient
+    awClient.init().then(() => {
+        unfulfilled.forEach((message: any) => {
+            let { bundle, sender, resolve } = message;
+            resolve(fulfilMessage(bundle, sender));
+        });
+    });
+
     // Setup developer mode if applicable
     awClient.getGlobalOptions().then(options => {
         developerMode = options && options.developerMode;
@@ -86,10 +96,21 @@ function initDeveloperMode() {
 
 // Handle messages sent from content script
 handleMessage((bundle: any, sender: any) => {
+    if (!awClient.initiated) {
+        return new Promise((resolve, _) => {
+            unfulfilled.push({ bundle, sender, resolve });
+        });
+    } else {
+        fulfilMessage(bundle, sender);
+    }
+});
+
+function fulfilMessage(bundle: any, sender: any) {
     switch (bundle.message) {
         case 'requestAdapters':
         return new Promise<any>((resolve, reject) => {
             let adapters = awClient.getAdapters();
+            console.log('Background awClient.getAdapters: ' + JSON.stringify(adapters));
             resolve(Object.keys(adapters).map(key => adapters[key]));
         });
         case 'installAdapter': return validate(attachAdapter, bundle.data, sender);
@@ -102,7 +123,7 @@ handleMessage((bundle: any, sender: any) => {
             return new Promise<any>((_, reject) => reject(new Error('Command not found: ' + bundle.message)));
         }
     }
-});
+}
 
 init();
 
