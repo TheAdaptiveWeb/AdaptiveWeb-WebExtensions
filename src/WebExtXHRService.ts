@@ -28,7 +28,7 @@ export class WebExtXHRService implements XHRService {
         return new Promise<any>((resolve, reject) => {
 
             if (!(options instanceof XHROptions)) options = new XHROptions(options);
-
+            
             url = options.encodeUrlParameters(url);
 
             let method = options.method;
