@@ -24,8 +24,10 @@ export class WebExtXHRService implements XHRService {
      * @param url the url to send the request to. Can contain interpolations.
      * @param options The options of the request.
      */
-    request(url: string, options: XHROptions): Promise<any> {
+    request(url: string, options: XHROptions | any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
+
+            if (!(options instanceof XHROptions)) options = new XHROptions(options);
 
             url = options.encodeUrlParameters(url);
 
