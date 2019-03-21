@@ -130,6 +130,10 @@ handleMessage((bundle: any, sender: any) => {
 
 function fulfilMessage(bundle: any, sender: any) {
     switch (bundle.message) {
+        case 'init':
+        if (developerMode && (socket === undefined || !socket.connected))
+            initDeveloperMode();
+        return Promise.resolve();
         case 'requestAdapters':
         return new Promise<any>((resolve, reject) => {
             let adapters = awClient.getAdapters();

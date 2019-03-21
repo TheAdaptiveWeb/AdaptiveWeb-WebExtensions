@@ -77,6 +77,8 @@ import 'adaptiveweb/dist/reporting';
         });
     }
 
+    sendMessage('init');
+
     // Fetch the adapters from the
     sendMessage('requestAdapters')
         .then(rawAdapters => {
