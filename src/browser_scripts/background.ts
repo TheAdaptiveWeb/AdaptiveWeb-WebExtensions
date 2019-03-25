@@ -61,6 +61,7 @@ function refreshOptions(then: Function) {
  * Connects to the native interface
  */
 function initDeveloperMode() {
+    // Check if development server is online
     socket = io('http://localhost:13551');
 
     socket.io.on('connect_error', (err: any) => {
