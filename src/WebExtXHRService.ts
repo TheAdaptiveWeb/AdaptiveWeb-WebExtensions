@@ -28,8 +28,6 @@ export class WebExtXHRService implements XHRService {
     request(url: string, options: XHROptions | Object): Promise<any> {
         return new Promise<any>((resolve, reject) => {
 
-            console.log('Checkpoint A');
-
             let _opts: XHROptions = (options instanceof XHROptions) ? options : new XHROptions(options);
 
             let isDataBlob: boolean = false;
@@ -39,15 +37,11 @@ export class WebExtXHRService implements XHRService {
                 isDataBlob = true;
             }
 
-            console.log(_opts.data);
-
             url = _opts.encodeUrlParameters(url);
 
             let method = _opts.method;
             let useBody = method !== 'GET' && method !== 'TRACE'; 
             let data = _opts.data;
-
-            console.log('Checkpoint B');
 
             // add url parameters
             if (_opts.method == 'GET' && !(data instanceof Blob) && typeof data !== 'string') {
@@ -60,9 +54,6 @@ export class WebExtXHRService implements XHRService {
                 data = _opts.serialize(data);
             }
 
-
-            console.log('Checkpoint C');
-
             let req = new XMLHttpRequest();
             req.open(_opts.method, url, _opts.async || true, _opts.user, _opts.password);
             Object.keys(_opts.headers).forEach(key => {
@@ -72,9 +63,6 @@ export class WebExtXHRService implements XHRService {
             req.withCredentials = _opts.withCredentials || req.withCredentials;
             req.timeout = _opts.timeout || req.timeout;
 
-
-            console.log('Checkpoint D');
-
             // Handle aborts
             let aborted: boolean = false;
             let _abort: Function = req.abort;
@@ -83,12 +71,7 @@ export class WebExtXHRService implements XHRService {
                 _abort();
             }
 
-
-            console.log('Checkpoint E');
-
             req.onreadystatechange = () => {
-
-            console.log('Checkpoint F');
                 if (aborted) return;
 
                 if (req.readyState === 4) {
@@ -108,7 +91,6 @@ export class WebExtXHRService implements XHRService {
 
             if (useBody) req.send(<Blob | string> data);
             else req.send();
-            console.log('Checkpoint G');
         });
    }
 
