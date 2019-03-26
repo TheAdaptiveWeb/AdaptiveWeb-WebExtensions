@@ -81,3 +81,36 @@ export function validateOrigin(origin: string, allowLocalhost = true): boolean {
     if (allowLocalhost && origin.startsWith('http://localhost')) return true;
     return allowedOrigins.exec(origin) !== undefined;
 }
+
+export function encodeBlob(blob: Blob): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = (event) => {
+            if (event === null || event.target === null) 
+                return reject('Could not read blob');
+            resolve('aw-blob;' + (<any> event.target).result);
+        }
+        reader.readAsDataURL(blob);
+    });
+}
+
+export function decodeBlob(raw: string): Blob {
+    let contentType = 'image/png';
+    let sliceSize = 512;
+
+    let bytes = atob(raw);
+    let byteArrays = [];
+
+    for (let offset = 0; offset < bytes.length; offset += sliceSize) {
+        let slice = bytes.slice(offset, offset + sliceSize);
+
+        let byteN = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) 
+            byteN[i] = slice.charCodeAt(i);
+        
+        let byteArr = new Uint8Array(byteN);
+        byteArrays.push(byteArr);
+    }
+
+    return new Blob(byteArrays, { type: contentType });
+}

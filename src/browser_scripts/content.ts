@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 import { Adapter, XHROptions, IAdapterContext } from "adaptiveweb";
-import { sendMessage, validateOrigin } from "./util";
+import { sendMessage, validateOrigin, encodeBlob } from "./util";
 import 'adaptiveweb/dist/reporting';
 
 (function() {
@@ -55,6 +55,7 @@ import 'adaptiveweb/dist/reporting';
         }
 
         request(url: string, options: XHROptions): Promise<any> {
+            if (options.data && options.data instanceof Blob) options.data = encodeBlob(options.data);
             return sendMessage('request', { id: this.adapter.id, args: [url, options] });
         }
 

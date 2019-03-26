@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 import { XHRService, XHROptions } from "adaptiveweb";
+import { decodeBlob } from './browser_scripts/util';
 
 /**
  * WebExtensions implementation of the XHRService.
@@ -31,7 +32,14 @@ export class WebExtXHRService implements XHRService {
 
             let _opts: XHROptions = (options instanceof XHROptions) ? options : new XHROptions(options);
 
+            if (_opts.data && typeof(_opts.data) === 'string' && _opts.data.startsWith('aw-blob;')) {
+                _opts.data = decodeBlob(_opts.data.slice(8));
+            }
+
+            console.log(url);
             url = _opts.encodeUrlParameters(url);
+
+            console.log(url);
 
             let method = _opts.method;
             let useBody = method !== 'GET' && method !== 'TRACE'; 
@@ -47,6 +55,7 @@ export class WebExtXHRService implements XHRService {
                 };
                 url = url.slice(0, -1);
             } else if (useBody) {
+                console.log(_opts.serialize.toString())
                 data = _opts.serialize(data);
             }
 
