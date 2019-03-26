@@ -32,14 +32,16 @@ export class WebExtXHRService implements XHRService {
 
             let _opts: XHROptions = (options instanceof XHROptions) ? options : new XHROptions(options);
 
+            let isDataBlob: boolean = false;
+
             if (_opts.data && typeof(_opts.data) === 'string' && _opts.data.startsWith('aw-blob;')) {
                 _opts.data = decodeBlob(_opts.data.slice(8));
+                isDataBlob = true;
             }
 
-            console.log(url);
-            url = _opts.encodeUrlParameters(url);
+            console.log(_opts.data);
 
-            console.log(url);
+            url = _opts.encodeUrlParameters(url);
 
             let method = _opts.method;
             let useBody = method !== 'GET' && method !== 'TRACE'; 
@@ -48,14 +50,13 @@ export class WebExtXHRService implements XHRService {
             console.log('Checkpoint B');
 
             // add url parameters
-            if (_opts.method == 'GET') {
+            if (_opts.method == 'GET' && !(data instanceof Blob) && typeof data !== 'string') {
                 url += '?'
                 for (let param in data) {
-                    url += param + '=' + data[param] + '&';
+                    url += param + '=' + (<any>data)[param] + '&';
                 };
                 url = url.slice(0, -1);
-            } else if (useBody) {
-                console.log(_opts.serialize.toString())
+            } else if (useBody && !isDataBlob) {
                 data = _opts.serialize(data);
             }
 
@@ -105,7 +106,7 @@ export class WebExtXHRService implements XHRService {
                 }
             }
 
-            if (useBody) req.send(_opts.data);
+            if (useBody) req.send(<Blob | string> data);
             else req.send();
             console.log('Checkpoint G');
         });

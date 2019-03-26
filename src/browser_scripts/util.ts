@@ -95,6 +95,8 @@ export function encodeBlob(blob: Blob): Promise<string> {
 }
 
 export function decodeBlob(raw: string): Blob {
+    raw = raw.slice(22);
+
     let contentType = 'image/png';
     let sliceSize = 512;
 
@@ -111,6 +113,6 @@ export function decodeBlob(raw: string): Blob {
         let byteArr = new Uint8Array(byteN);
         byteArrays.push(byteArr);
     }
-
+    
     return new Blob(byteArrays, { type: contentType });
 }

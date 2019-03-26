@@ -55,8 +55,14 @@ import 'adaptiveweb/dist/reporting';
         }
 
         request(url: string, options: XHROptions): Promise<any> {
-            if (options.data && options.data instanceof Blob) options.data = encodeBlob(options.data);
-            return sendMessage('request', { id: this.adapter.id, args: [url, options] });
+            if (options.data && options.data instanceof Blob) {
+                return encodeBlob(options.data).then(encodedData => {
+                    options.data = encodedData;
+                    return sendMessage('request', { id: this.adapter.id, args: [url, options]});
+                });
+            } else {
+                return sendMessage('request', { id: this.adapter.id, args: [url, options] });
+            }   
         }
 
         getPreferences(): Promise<any> {
