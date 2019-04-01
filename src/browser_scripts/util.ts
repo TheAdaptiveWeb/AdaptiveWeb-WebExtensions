@@ -15,19 +15,16 @@
 declare var chrome: any, browser: any;
 const b: any = chrome || browser;
 
-let allowedOrigins = /https:\/\/adaptiveweb\.io(\/.+)*(\/)?/;
-
 /**
  * Sends a message
  * @param messageName the name of the message
  * @param data the data to send with the message
  */
-export function sendMessage(messageName: string, data?: any): Promise<any> {
+export function sendMessage(intent: string, data?: any): Promise<any> {
     return new Promise<any>((resolve, reject) => {
         let resolved = false;
         let promise = b.runtime.sendMessage({
-            message: messageName,
-            data: data
+            intent, data
         }, function(bundle: any) {
             if (bundle === undefined) {
                 reject('Bundle is undefined');
@@ -71,15 +68,6 @@ export function handleMessage(callback: Function) {
             return true; // Return true tells Chrome this is async
         } else return promise; // Firefox
     });
-}
-
-/**
- * Validates whether an origin is allowed
- * @param origin the origin to evaluate
- */
-export function validateOrigin(origin: string, allowLocalhost = true): boolean {
-    if (allowLocalhost && origin.startsWith('http://localhost')) return true;
-    return allowedOrigins.exec(origin) !== undefined;
 }
 
 export function encodeBlob(blob: Blob): Promise<string> {

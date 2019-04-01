@@ -1,3 +1,5 @@
+
+
 /**
  *  Copyright 2019 The Adaptive Web. All Rights Reserved.
  * 
@@ -12,103 +14,71 @@
  *  express or implied. See the License for the specific language governing 
  *  permissions and limitations under the License.
  */
-import { Adapter, XHROptions, IAdapterContext } from "adaptiveweb";
-import { sendMessage, validateOrigin, encodeBlob } from "./util";
-import 'adaptiveweb/dist/reporting';
 
-(function() {
+import { Wrapper, AWClient, Adapter } from 'adaptiveweb';
+import { WebExtWrapper } from '../WebExtWrapper';
+import { AWMessage } from '../AWMessage';
+import { AWCLIClient } from '../AWCLIClient';
 
-    if (validateOrigin(location.href)) {
-        window.postMessage({ message: 'initAdaptiveWebPlugin', reply: true }, '*');
+/**
+ * Load required fonts
+ */
+import * as WebFont from 'webfontloader';
+import { configurationBaseURI } from './config';
+WebFont.load({
+    google: {
+        families: ['Nunito']
+    }
+});
+
+let wrapper: Wrapper = new WebExtWrapper;
+let awClient: AWClient = new AWClient(wrapper);
+
+let adapters: Adapter[] = [];
+let options: any;
+
+let messageQueue: AWMessage[] = [];
+
+awClient.init()
+.then((_adapters: { [key: string] : Adapter }) => {
+    console.log('Adapters: ', _adapters)
+    adapters = Object.keys(_adapters).map(key => Adapter.fromObject(_adapters[key]));
+    return awClient.getGlobalOptions();
+}).then((globalOptions) => {
+    options = globalOptions;
+
+    if (options.developerMode) new AWCLIClient(awClient, options.autoReload);
+
+    if (messageQueue.length > 0) {
+        messageQueue.forEach(handleMessage)
     }
 
-    /**
-     * Handle messages from page
-     */
-    window.addEventListener('message', event => {
-        if (event.data.reply) return;
-        if (event.source != window) return;
-        if (!validateOrigin(event.origin)) {
-            if (event.data && event.data.messageId !== undefined) 
-                reply(event.data.messageId, 'Request sent from disallowed origin: ' + event.origin, true);
-            return;
-        }
-
-        let { messageId, bundle } = event.data;
-        if (messageId === undefined || bundle === undefined) return; // This message probably isn't for us
-        let { message, data } = bundle;
-        sendMessage(message, data)
-            .then(res => {
-                reply(messageId, res);
-            }, err => {
-                reply(messageId, err, true);
-            });
+    adapters.forEach(adapter => {
+        if (!adapter.developer)
+            adapter.execute(awClient.getAdapterContext(adapter));
     });
+});
 
-    /**
-     * Routes AdapterContext calls through the background script
-     */
-    class ProxyAdapterContext implements IAdapterContext {
-        adapter: Adapter;
-        constructor(adapter: Adapter) {
-            this.adapter = adapter;
-        }
+if (location.href.startsWith(configurationBaseURI)) {
+    addEventListener('message', (message: MessageEvent) => {
+        if (!message.origin.startsWith(configurationBaseURI)) return;
+        handleMessage(message.data);
+    });
+}
 
-        request(url: string, options: XHROptions): Promise<any> {
-            if (options.data && options.data instanceof Blob) {
-                return encodeBlob(options.data).then(encodedData => {
-                    options.data = encodedData;
-                    return sendMessage('request', { id: this.adapter.id, args: [url, options]});
-                });
-            } else {
-                return sendMessage('request', { id: this.adapter.id, args: [url, options] });
-            }   
-        }
-
-        getPreferences(): Promise<any> {
-            return new Promise<any>((resolve, reject) => {
-                sendMessage('getPreferences', { id: this.adapter.id }).then((message) => {
-                    resolve(message);
-                });
-            });
+function handleMessage(message: AWMessage) {
+    if (!awClient.initiated) messageQueue.push(message);
+    else {
+        switch (message.type) {
+            case 'installAdapter': return awClient.attachAdapter(message.bundle.adapter);
+            case 'removeAdapter': return awClient.detachAdapter(message.bundle.adapterId);
+            case 'updatePreferences': return awClient.updateAdapterPreferences(message.bundle.adapterId, message.bundle.preferences);
+            case 'setGlobalOptions': return awClient.setGlobalOptions(message.bundle.globalOptions);
+            case 'getGlobalOptions': return awClient.getGlobalOptions().then(options => { sendReply({ id: message.messageId, options }) }); 
         }
     }
+}
 
-    /**
-     * Callback for executing the adapters
-     * @param adapters the adapters to execute
-     */
-    function executeAdapters(adapters: Adapter[]) {
-        adapters.forEach(adapter => {
-            adapter.execute(new ProxyAdapterContext(adapter));
-        });
-    }
-
-    sendMessage('init');
-
-    // Fetch the adapters from the
-    sendMessage('requestAdapters')
-        .then(rawAdapters => {
-            let adapters: Adapter[] = [];
-            (rawAdapters || []).forEach((raw: any) => {
-                adapters.push(Adapter.fromObject(raw));
-            });
-            return adapters;
-        }, err => {
-            throw new Error(err);
-        })
-        .then(adapters => {
-            executeAdapters(adapters);
-        });
-
-    /**
-     * Replies to a message
-     * @param messageId the message ID to reply to
-     * @param bundle the bundle to send with the reply
-     * @param isError denotes if this is an error or not
-     */
-    function reply(messageId: Number, bundle: any, isError = false) {
-        window.postMessage({ messageId, bundle, isError, reply: true }, '*');
-    }
-
-})();
+function sendReply(message: any) {
+    postMessage(message, '*')
+}

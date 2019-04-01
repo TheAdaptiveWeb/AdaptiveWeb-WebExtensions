@@ -12,9 +12,11 @@
  *  express or implied. See the License for the specific language governing 
  *  permissions and limitations under the License.
  */
+
 import { Wrapper } from 'adaptiveweb';
 import { WebExtStorageService } from './WebExtStorageService';
 import { WebExtXHRService } from './WebExtXHRService';
+import { WebExtDOMService } from './WebExtDOMService';
 
 /**
  * WebExtentions wrapper for AdaptiveWeb
@@ -28,5 +30,6 @@ export class WebExtWrapper extends Wrapper {
     // Services
     storage = new WebExtStorageService;
     xhr = new WebExtXHRService;
+    dom = new WebExtDOMService;
 
 }
