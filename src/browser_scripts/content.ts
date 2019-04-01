@@ -59,10 +59,9 @@ awClient.init()
     });
 });
 
-if (location.href.startsWith(configurationBaseURI)) {
+if (location.href.startsWith(configurationBaseURI) || location.href.startsWith('http://localhost')) {
     addEventListener('message', (message: MessageEvent) => {
-        if (!message.origin.startsWith(configurationBaseURI)) return;
-        handleMessage(message.data);
+        if (!message.origin.startsWith(configurationBaseURI) || !location.href.startsWith('http://localhost')) return;
     });
 }
 
@@ -70,11 +69,33 @@ function handleMessage(message: AWMessage) {
     if (!awClient.initiated) messageQueue.push(message);
     else {
         switch (message.type) {
-            case 'installAdapter': return awClient.attachAdapter(message.bundle.adapter);
-            case 'removeAdapter': return awClient.detachAdapter(message.bundle.adapterId);
-            case 'updatePreferences': return awClient.updateAdapterPreferences(message.bundle.adapterId, message.bundle.preferences);
-            case 'setGlobalOptions': return awClient.setGlobalOptions(message.bundle.globalOptions);
-            case 'getGlobalOptions': return awClient.getGlobalOptions().then(options => { sendReply({ id: message.messageId, options }) }); 
+            case 'requestAdapter': {
+                sendReply({ id: message.messageId, data: awClient.getAdapters() });
+                break;
+            }
+            case 'installAdapter': {
+                awClient.attachAdapter(message.data.adapter);
+                break;
+            } 
+            case 'removeAdapter': {
+                awClient.detachAdapter(message.data.adapterId);
+                break;
+            }
+            case 'updatePreferences': {
+                awClient.updateAdapterPreferences(message.data.adapterId, message.data.preferences);
+                break;
+            }
+            case 'setGlobalOptions': {
+                awClient.setGlobalOptions(message.data.globalOptions);
+                break;
+            }
+            case 'getGlobalOptions': {
+                awClient.getGlobalOptions()
+                    .then(options => { 
+                        sendReply({ id: message.messageId, data: options }) 
+                    }); 
+                break;
+            } 
         }
     }
 }

@@ -3,7 +3,7 @@ export interface AWMessage {
 
     reply: boolean;
     messageId: number;
-    bundle: any;
+    data: any;
     type: string;
 
 }
