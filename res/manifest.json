@@ -5,7 +5,8 @@
     "description": "Adaptive web accessibility toolkit.",
     "permissions": [
         "activeTab",
-        "storage"
+        "storage",
+        "unlimitedStorage"
     ],
     "icons": {
         "32": "icons/adaptiveweb-32.png"
