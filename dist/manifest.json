@@ -1,8 +1,8 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "AdaptiveWeb",
-    "version": "0.0.1",
-    "description": "Adaptive web accessibility toolkit.",
+    "version": "0.1.0",
+    "description": "Adaptive web accessibility platform.",
     "permissions": [
         "activeTab",
         "storage",
