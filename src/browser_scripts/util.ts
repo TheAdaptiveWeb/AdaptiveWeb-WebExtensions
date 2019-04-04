@@ -1,3 +1,5 @@
+import { Adapter } from 'adaptiveweb';
+
 /**
  *  Copyright 2019 The Adaptive Web. All Rights Reserved.
  * 
@@ -42,6 +44,26 @@ export function sendMessage(intent: string, data?: any): Promise<any> {
             return promise;
         }
     });
+}
+
+export function compressAdapter(adapter: Adapter | Object) {
+    let whitelist = [
+        'id',
+        'name',
+        'description',
+        'version',
+        'tags',
+        'preferenceSchema',
+        'about'
+    ];
+
+    let compressed: any = {};
+
+    whitelist.forEach(w => {
+        if ((<any>adapter)[w] !== undefined) compressed[w] = (<any>adapter)[w];
+    });
+
+    return compressed;
 }
 
 /**

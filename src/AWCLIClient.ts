@@ -25,29 +25,19 @@ export class AWCLIClient {
         this.socket.on('connect', () => { 
             console.log('Connected to development server');
             this.socket.emit('requestAdapters', (adapters: any[]) => {
-                console.log('Removing old development adapters');
-                let devAdapters = client.getAdapters();
-                let uninstallList = Object.keys(devAdapters).filter(k => devAdapters[k].developer);
-                uninstallList.forEach((adapter: any) => client.detachAdapter(adapter.id));
-    
-                console.log('Adding adapters:', adapters);
+                console.log('Adding developer adapters:', adapters);
                 adapters.forEach(adapter => {
-                    adapter.developer = true;
                     let a = Adapter.fromObject(adapter);
-                    client.attachAdapter(a, true);
                     a.execute(client.getAdapterContext(a));
                 });
+
+                window.postMessage({ message: 'incomingDeveloperAdapters', data: adapters }, '*')
             });
         });
         
         this.socket.on('adapterUpdate', ((msg: any) => {
             console.log('Adapter update from awcli:', msg);
             
-            // Install the adapter
-            msg.developer = true;
-            let adapter = Adapter.fromObject(msg);
-            client.attachAdapter(adapter, true);
-
             if (autoReload) {
                 location.reload();
             }

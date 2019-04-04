@@ -77,6 +77,9 @@ export class WebExtAWCard extends WebExtAWElement implements AWCard {
             children.forEach((child) => { this.appendChild(child); });
         
         this.setCSSProperties(cssProperties);
+        this.element.addEventListener('click', (event: MouseEvent) => {
+            event.stopPropagation();
+        });
     }
 
 }

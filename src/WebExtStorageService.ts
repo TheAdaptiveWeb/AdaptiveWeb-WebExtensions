@@ -29,9 +29,11 @@ export class WebExtStorageService implements StorageService {
      * @param value the value to set the given entry to
      * @param type the type of storage, defaults to StorageType.SYNC
      */
-    set(key: string, value: any, type: StorageType = StorageType.SYNC): Promise<any> {
+    set(key: string, value: any, type: StorageType = StorageType.LOCAL): Promise<any> {
         let storage = (type === StorageType.SYNC) ? this.browser.storage.sync : this.browser.storage.local;
         
+        console.log('Trying to set', key, 'to', value);
+
         return new Promise<any>((resolve, reject) => {
             let promise = storage.set({ [key] : value }, (result: any) => {
                 resolve(result);
@@ -47,7 +49,7 @@ export class WebExtStorageService implements StorageService {
      * Fetches the value stored at the given key
      * @param key the key to retrieve
      */
-    get(key: string, type: StorageType = StorageType.SYNC): Promise<any> {
+    get(key: string, type: StorageType = StorageType.LOCAL): Promise<any> {
         let storage = (type === StorageType.SYNC) ? this.browser.storage.sync : this.browser.storage.local;
         
         return new Promise<any>((resolve, reject) => {

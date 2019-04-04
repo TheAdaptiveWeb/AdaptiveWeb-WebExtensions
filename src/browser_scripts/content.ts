@@ -1,5 +1,3 @@
-
-
 /**
  *  Copyright 2019 The Adaptive Web. All Rights Reserved.
  * 
@@ -25,6 +23,8 @@ import { AWCLIClient } from '../AWCLIClient';
  */
 import * as WebFont from 'webfontloader';
 import { configurationBaseURI } from './config';
+import { compressAdapter } from './util';
+
 WebFont.load({
     google: {
         families: ['Nunito']
@@ -37,46 +37,52 @@ let awClient: AWClient = new AWClient(wrapper);
 let adapters: Adapter[] = [];
 let options: any;
 
+let enableMessaging: boolean = location.href.startsWith(configurationBaseURI) || location.href.startsWith('http://localhost');
 let messageQueue: AWMessage[] = [];
 
 awClient.init()
 .then((_adapters: { [key: string] : Adapter }) => {
-    console.log('Adapters: ', _adapters)
     adapters = Object.keys(_adapters).map(key => Adapter.fromObject(_adapters[key]));
     return awClient.getGlobalOptions();
 }).then((globalOptions) => {
     options = globalOptions;
-
-    if (options.developerMode) new AWCLIClient(awClient, options.autoReload);
+    
+    if (options && options.developerMode) new AWCLIClient(awClient, options.autoReload);
 
     if (messageQueue.length > 0) {
-        messageQueue.forEach(handleMessage)
+        messageQueue.forEach(handleMessage);
     }
 
     adapters.forEach(adapter => {
-        if (!adapter.developer)
-            adapter.execute(awClient.getAdapterContext(adapter));
+        adapter.execute(awClient.getAdapterContext(adapter));
     });
+
+    sendReply({ message: 'initAdaptiveWebPlugin' });
 });
 
-if (location.href.startsWith(configurationBaseURI) || location.href.startsWith('http://localhost')) {
+if (enableMessaging) {
     addEventListener('message', (message: MessageEvent) => {
-        if (!message.origin.startsWith(configurationBaseURI) || !location.href.startsWith('http://localhost')) return;
+        handleMessage(message.data);
     });
 }
 
 function handleMessage(message: AWMessage) {
+    if (!message.outbound) return;
     if (!awClient.initiated) messageQueue.push(message);
     else {
         switch (message.type) {
-            case 'requestAdapter': {
-                sendReply({ id: message.messageId, data: awClient.getAdapters() });
+            case 'requestAdapters': {
+                let adapters = awClient.getAdapters();
+                sendReply({ 
+                    messageId: message.messageId, 
+                    data: Object.keys(adapters).map(k => compressAdapter(adapters[k]))
+                });
                 break;
             }
             case 'installAdapter': {
-                awClient.attachAdapter(message.data.adapter);
+                awClient.attachAdapter(message.data.adapter, message.data.replace);
                 break;
-            } 
+            }
             case 'removeAdapter': {
                 awClient.detachAdapter(message.data.adapterId);
                 break;
@@ -85,14 +91,27 @@ function handleMessage(message: AWMessage) {
                 awClient.updateAdapterPreferences(message.data.adapterId, message.data.preferences);
                 break;
             }
+            case 'getAdapterPreferences': {
+                awClient.getAdapterPreferences(message.data.adapterId)
+                    .then((preferences: any) => {
+                        sendReply({
+                            messageId: message.messageId,
+                            data: preferences
+                        })
+                    });
+                break;
+            }
             case 'setGlobalOptions': {
-                awClient.setGlobalOptions(message.data.globalOptions);
+                awClient.setGlobalOptions(message.data);
                 break;
             }
             case 'getGlobalOptions': {
                 awClient.getGlobalOptions()
                     .then(options => { 
-                        sendReply({ id: message.messageId, data: options }) 
+                        sendReply({ 
+                            messageId: message.messageId, 
+                            data: options
+                        }) 
                     }); 
                 break;
             } 
@@ -101,5 +120,5 @@ function handleMessage(message: AWMessage) {
 }
 
 function sendReply(message: any) {
-    postMessage(message, '*')
+    postMessage(message, '*');
 }
