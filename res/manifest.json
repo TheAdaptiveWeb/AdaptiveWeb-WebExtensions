@@ -1,6 +1,6 @@
 {
-    "manifest_version": 3,
-    "name": "AdaptiveWeb",
+    "manifest_version": 2,
+    "name": "The Adaptive Web",
     "version": "0.1.0",
     "description": "Adaptive web accessibility platform.",
     "permissions": [

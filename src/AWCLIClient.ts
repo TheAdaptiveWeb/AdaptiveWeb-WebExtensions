@@ -28,12 +28,17 @@ export class AWCLIClient {
                 console.log('Adding developer adapters:', adapters);
                 adapters.forEach(adapter => {
                     let a = Adapter.fromObject(adapter);
+                    client.attachAdapter(a, true);
                     a.execute(client.getAdapterContext(a));
                 });
 
                 window.postMessage({ message: 'incomingDeveloperAdapters', data: adapters }, '*')
             });
         });
+
+        this.socket.on('removeAdapter', ((id: string) => {
+            client.detachAdapter(id);
+        }));
         
         this.socket.on('adapterUpdate', ((msg: any) => {
             console.log('Adapter update from awcli:', msg);
@@ -42,6 +47,12 @@ export class AWCLIClient {
                 location.reload();
             }
         }));
+    }
+
+    removeAdapter(id: string) {
+        if (this.socket) {
+            this.socket.emit('removeAdapter', id);
+        }
     }
 
 }

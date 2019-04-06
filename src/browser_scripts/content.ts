@@ -37,6 +37,8 @@ let awClient: AWClient = new AWClient(wrapper);
 let adapters: Adapter[] = [];
 let options: any;
 
+let awcli: AWCLIClient;
+
 let enableMessaging: boolean = location.href.startsWith(configurationBaseURI) || location.href.startsWith('http://localhost');
 let messageQueue: AWMessage[] = [];
 
@@ -47,7 +49,7 @@ awClient.init()
 }).then((globalOptions) => {
     options = globalOptions;
     
-    if (options && options.developerMode) new AWCLIClient(awClient, options.autoReload);
+    if (options && options.developerMode) awcli = new AWCLIClient(awClient, options.autoReload);
 
     if (messageQueue.length > 0) {
         messageQueue.forEach(handleMessage);
@@ -85,6 +87,7 @@ function handleMessage(message: AWMessage) {
             }
             case 'removeAdapter': {
                 awClient.detachAdapter(message.data.adapterId);
+                if (awcli !== undefined) awcli.removeAdapter(message.data.adapterId);
                 break;
             }
             case 'updatePreferences': {
