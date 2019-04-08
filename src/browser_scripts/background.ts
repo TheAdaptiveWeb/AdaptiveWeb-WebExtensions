@@ -27,8 +27,6 @@ browse.browserAction.onClicked.addListener(() => {
 
 handleMessage((bundle: any, sender: any) => {
 
-    console.log(bundle);
-
     if (bundle.intent === 'request') {
         return request(bundle.data.url, bundle.data.options);
     }

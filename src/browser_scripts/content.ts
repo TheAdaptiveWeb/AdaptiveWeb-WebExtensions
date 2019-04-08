@@ -48,16 +48,18 @@ awClient.init()
     return awClient.getGlobalOptions();
 }).then((globalOptions) => {
     options = globalOptions;
-    
-    if (options && options.developerMode) awcli = new AWCLIClient(awClient, options.autoReload);
 
     if (messageQueue.length > 0) {
         messageQueue.forEach(handleMessage);
     }
 
     adapters.forEach(adapter => {
-        adapter.execute(awClient.getAdapterContext(adapter));
+        if (adapter.developer) awClient.detachAdapter(adapter.id); // Detach old dev adapters
+        else adapter.execute(awClient.getAdapterContext(adapter));
     });
+    
+    // Load developer adapters
+    if (options && options.developerMode) awcli = new AWCLIClient(awClient, options.autoReload);
 
     sendReply({ message: 'initAdaptiveWebPlugin' });
 });

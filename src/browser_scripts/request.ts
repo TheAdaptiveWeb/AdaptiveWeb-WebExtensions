@@ -11,16 +11,12 @@ export default function request(url: string, options: XHROptions | Object): Prom
 
         let _opts: XHROptions = (options instanceof XHROptions) ? options : new XHROptions(options);
 
-        console.log('1', _opts);
-
         let isDataBlob: boolean = false;
 
         if (_opts.data && typeof(_opts.data) === 'string' && _opts.data.startsWith('aw-blob;')) {
             _opts.data = decodeBlob(_opts.data.slice(8));
             isDataBlob = true;
         }
-
-        console.log('2', _opts);
 
         url = _opts.encodeUrlParameters(url);
 

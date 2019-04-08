@@ -54,7 +54,8 @@ export function compressAdapter(adapter: Adapter | Object) {
         'version',
         'tags',
         'preferenceSchema',
-        'about'
+        'about',
+        'developer'
     ];
 
     let compressed: any = {};

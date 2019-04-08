@@ -27,6 +27,7 @@ export class AWCLIClient {
             this.socket.emit('requestAdapters', (adapters: any[]) => {
                 console.log('Adding developer adapters:', adapters);
                 adapters.forEach(adapter => {
+                    adapter.developer = true;
                     let a = Adapter.fromObject(adapter);
                     client.attachAdapter(a, true);
                     a.execute(client.getAdapterContext(a));
